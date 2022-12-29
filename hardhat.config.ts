@@ -51,8 +51,8 @@ const config: HardhatUserConfig = {
   networks: {
     dev: { url: 'http://localhost:8545' },
     // github action starts localgeth service, for gas calculations
-    localgeth: { url: 'http://localgeth:8545' },
-    goerli: getNetwork('goerli'),
+    localgeth: { url: 'https://rpc.ankr.com/eth_goerli' },
+    goerli: getNetwork('https://rpc.ankr.com/eth_goerli'),
     proxy: getNetwork1('http://localhost:8545'),
     kovan: getNetwork('kovan')
   },
