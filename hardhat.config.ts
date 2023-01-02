@@ -1,3 +1,4 @@
+import * as dotenv from 'dotenv'
 import '@nomiclabs/hardhat-waffle'
 import '@typechain/hardhat'
 import { HardhatUserConfig } from 'hardhat/config'
@@ -8,6 +9,7 @@ import 'solidity-coverage'
 
 import * as fs from 'fs'
 
+dotenv.config()
 const mnemonicFileName = process.env.MNEMONIC_FILE ?? `${process.env.HOME}/.secret/testnet-mnemonic.txt`
 let mnemonic = 'test '.repeat(11) + 'junk'
 if (fs.existsSync(mnemonicFileName)) { mnemonic = fs.readFileSync(mnemonicFileName, 'ascii') }
@@ -52,7 +54,8 @@ const config: HardhatUserConfig = {
     dev: { url: 'http://localhost:8545' },
     // github action starts localgeth service, for gas calculations
     localgeth: { url: 'https://rpc.ankr.com/eth_goerli' },
-    goerli: getNetwork('https://rpc.ankr.com/eth_goerli'),
+    goerli: getNetwork('goerli'),
+    // https://rpc.ankr.com/eth_goerli
     proxy: getNetwork1('http://localhost:8545'),
     kovan: getNetwork('kovan')
   },

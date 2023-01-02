@@ -8,7 +8,12 @@ import { TestCounter__factory, EntryPoint__factory } from '../typechain'
 import '../test/aa.init'
 import { parseEther } from 'ethers/lib/utils'
 import { providers } from 'ethers'
-import { TransactionReceipt } from '@ethersproject/abstract-provider/src.ts/index';
+import { TransactionReceipt } from '@ethersproject/abstract-provider/src.ts/index'
+import { constants } from 'buffer'
+
+function sleep(ms : any) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
 
 // eslint-disable-next-line @typescript-eslint/no-floating-promises
 (async () => {
@@ -31,22 +36,24 @@ import { TransactionReceipt } from '@ethersproject/abstract-provider/src.ts/inde
 
   console.log('entryPointAddress:', entryPointAddress, 'testCounterAddress:', testCounterAddress)
   const provider = ethers.provider
-  const ethersSigner = provider.getSigner(0)
+  const ethersSigner = provider.getSigner(1)
   const prefundAccountAddress = await ethersSigner.getAddress()
   const prefundAccountBalance = await provider.getBalance(prefundAccountAddress)
   console.log('using prefund account address', prefundAccountAddress, 'with balance', prefundAccountBalance.toString())
 
-  let sendUserOp
+  const sendUserOp = localUserOpSender(entryPointAddress, ethersSigner)
 
-  if (aa_url != null) {
-    const newprovider = new providers.JsonRpcProvider(aa_url)
-    sendUserOp = rpcUserOpSender(newprovider, entryPointAddress)
-    const supportedEntryPoints: string[] = await newprovider.send('eth_supportedEntryPoints', []).then(ret => ret.map(ethers.utils.getAddress))
-    console.log('node supported EntryPoints=', supportedEntryPoints)
-    if (!supportedEntryPoints.includes(entryPointAddress)) {
-      console.error('ERROR: node', aa_url, 'does not support our EntryPoint')
-    }
-  } else { sendUserOp = localUserOpSender(entryPointAddress, ethersSigner) }
+  // if (aa_url != null) {
+  //   const newprovider = new providers.JsonRpcProvider(aa_url)
+  //   sendUserOp = rpcUserOpSender(newprovider, entryPointAddress)
+  //   const supportedEntryPoints: string[] = await newprovider.send('eth_supportedEntryPoints', []).then(ret => ret.map(ethers.utils.getAddress))
+  //   console.log('node supported EntryPoints=', supportedEntryPoints)
+  //   if (!supportedEntryPoints.includes(entryPointAddress)) {
+  //     console.error('ERROR: node', aa_url, 'does not support our EntryPoint')
+  //   }
+  // } else {
+  // sendUserOp =
+  // }
 
   // index is unique for an account (so same owner can have multiple accounts, with different index
   const index = parseInt(process.env.AA_INDEX ?? '0')
@@ -79,7 +86,8 @@ import { TransactionReceipt } from '@ethersproject/abstract-provider/src.ts/inde
   const prebalance = await provider.getBalance(myAddress)
   console.log('balance=', prebalance.div(1e9).toString(), 'deposit=', preDeposit.div(1e9).toString())
   console.log('estimate direct call', { gasUsed: await testCounter.connect(ethersSigner).estimateGas.justemit().then(t => t.toNumber()) })
-  const ret = await testCounter.justemit()
+  // await sleep(9000)
+  const ret = await testCounter.connect(ethersSigner).justemit()
   console.log('waiting for mine, hash (reqId)=', ret.hash)
   const rcpt = await ret.wait()
   const netname = await provider.getNetwork().then(net => net.name)
@@ -92,8 +100,9 @@ import { TransactionReceipt } from '@ethersproject/abstract-provider/src.ts/inde
   const logs = await entryPoint.queryFilter('*' as any, rcpt.blockNumber)
   console.log(logs.map((e: any) => ({ ev: e.event, ...objdump(e.args!) })))
   console.log('1st run gas used:', await evInfo(rcpt))
-
-  const ret1 = await testCounter.justemit()
+  const ret1 = await testCounter.connect(ethersSigner).justemit()
+  //doubt
+  console.log('Hello')
   const rcpt2 = await ret1.wait()
   console.log('2nd run:', await evInfo(rcpt2))
 

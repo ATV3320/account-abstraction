@@ -13,8 +13,8 @@ contract TestCounter {
     function justemit() public {
         emit CalledFrom(msg.sender);
     }
-
     event CalledFrom(address sender);
+
 
     //helper method to waste gas
     // repeat - waste gas on writing storage in a loop
